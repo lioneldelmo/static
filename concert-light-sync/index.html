@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Concert Light Sync — Turn Your Phone Into a Concert Light</title>
+  <meta name="description" content="Transform your smartphone into a real-time concert light controller. 6 stunning modes, audio-reactive effects, gesture controls. Built for concert-goers." />
+  <style>
+    /* ─── CSS Custom Properties ───────────────────────────────── */
+    :root {
+      --bg:           #0c0c10;
+      --surface:      rgba(24, 24, 32, 0.82);
+      --surface-2:    rgba(255,255,255,0.055);
+      --border:       rgba(255,255,255,0.09);
+      --accent:       #FF6B00;
+      --accent-glow:  rgba(255, 107, 0, 0.35);
+      --text:         #f0f0f5;
+      --text-dim:     rgba(240,240,245,0.55);
+      --radius-lg:    28px;
+      --radius-md:    18px;
+      --radius-sm:    12px;
+    }
+
+    /* ─── Reset & Base ────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ─── Scroll-reveal ───────────────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── Section Shared ──────────────────────────────────────── */
+    section { padding: 96px 24px; }
+    .section-label {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 14px;
+      padding: 4px 12px;
+      background: rgba(255,107,0,0.12);
+      border-radius: 100px;
+      border: 1px solid rgba(255,107,0,0.22);
+    }
+    .section-title {
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+    .section-sub {
+      font-size: 17px;
+      color: var(--text-dim);
+      max-width: 560px;
+      margin-bottom: 56px;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    /* ═══════════════════════════════════════════════════════════
+       HERO
+    ═══════════════════════════════════════════════════════════ */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      padding: 40px 24px 80px;
+    }
+
+    /* Orb background */
+    .orbs {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.28;
+    }
+    .orb-1 {
+      width: 520px; height: 520px;
+      background: radial-gradient(circle, #FF6B00, transparent 70%);
+      top: -100px; left: -100px;
+      animation: orbFloat1 14s ease-in-out infinite alternate;
+    }
+    .orb-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, #9B30FF, transparent 70%);
+      bottom: -80px; right: -60px;
+      animation: orbFloat2 18s ease-in-out infinite alternate;
+    }
+    .orb-3 {
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, #00E5FF, transparent 70%);
+      top: 40%; left: 55%;
+      animation: orbFloat3 22s ease-in-out infinite alternate;
+    }
+    .orb-4 {
+      width: 240px; height: 240px;
+      background: radial-gradient(circle, #00FF88, transparent 70%);
+      top: 30%; left: 10%;
+      animation: orbFloat1 16s 3s ease-in-out infinite alternate;
+      opacity: 0.18;
+    }
+    @keyframes orbFloat1 {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(60px, 40px) scale(1.15); }
+    }
+    @keyframes orbFloat2 {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(-50px, -60px) scale(1.2); }
+    }
+    @keyframes orbFloat3 {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(-40px, 50px) scale(0.9); }
+    }
+
+    /* Particle grid lines */
+    .grid-lines {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 800px;
+    }
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 28px;
+      padding: 6px 16px;
+      background: rgba(255,107,0,0.1);
+      border: 1px solid rgba(255,107,0,0.25);
+      border-radius: 100px;
+      backdrop-filter: blur(10px);
+    }
+    .hero-eyebrow::before {
+      content: '';
+      width: 7px; height: 7px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: blink 1.8s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%,100% { opacity: 1; }
+      50% { opacity: 0.2; }
+    }
+
+    .hero-title {
+      font-size: clamp(36px, 7vw, 78px);
+      font-weight: 900;
+      line-height: 1.06;
+      letter-spacing: -0.03em;
+      margin-bottom: 24px;
+    }
+    .hero-title .highlight {
+      background: linear-gradient(135deg, #FF6B00 0%, #FFD700 50%, #FF6B00 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 4s linear infinite;
+    }
+    @keyframes shimmer {
+      from { background-position: 0% center; }
+      to   { background-position: 200% center; }
+    }
+
+    .hero-sub {
+      font-size: clamp(16px, 2.2vw, 20px);
+      color: var(--text-dim);
+      max-width: 580px;
+      margin: 0 auto 48px;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+      border: none;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 32px var(--accent-glow), 0 4px 16px rgba(0,0,0,0.4);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 0 48px rgba(255,107,0,0.55), 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+    }
+    .btn-secondary:hover {
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    /* Version badge */
+    .version-badge {
+      margin-top: 48px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      background: rgba(255,255,255,0.04);
+    }
+
+    /* Scroll indicator */
+    .scroll-hint {
+      position: absolute;
+      bottom: 36px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-dim);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      z-index: 1;
+    }
+    .scroll-arrow {
+      width: 20px; height: 20px;
+      border-right: 2px solid rgba(255,255,255,0.3);
+      border-bottom: 2px solid rgba(255,255,255,0.3);
+      transform: rotate(45deg);
+      animation: scrollBounce 1.6s ease-in-out infinite;
+    }
+    @keyframes scrollBounce {
+      0%,100% { transform: rotate(45deg) translateY(0); }
+      50%      { transform: rotate(45deg) translateY(6px); opacity: 0.4; }
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       MODES SHOWCASE
+    ═══════════════════════════════════════════════════════════ */
+    #modes { background: rgba(0,0,0,0.3); }
+    .modes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .mode-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      backdrop-filter: blur(16px);
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+    .mode-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    /* Mode preview canvas */
+    .mode-preview {
+      height: 160px;
+      position: relative;
+      overflow: hidden;
+    }
+    .mode-info {
+      padding: 20px 22px 22px;
+    }
+    .mode-name {
+      font-size: 17px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      letter-spacing: -0.01em;
+    }
+    .mode-desc {
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+    .mode-tag {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .tag-audio { background: rgba(0,229,255,0.12); color: #00E5FF; border: 1px solid rgba(0,229,255,0.2); }
+    .tag-visual { background: rgba(155,48,255,0.12); color: #BF80FF; border: 1px solid rgba(155,48,255,0.2); }
+
+    /* ── Strobe preview ── */
+    .preview-strobe {
+      background: #121212;
+      animation: strobeAnim 0.22s step-end infinite;
+    }
+    @keyframes strobeAnim {
+      0%,49% { background: #f5f5ff; box-shadow: inset 0 0 80px #fff; }
+      50%,100% { background: #121212; }
+    }
+
+    /* ── Flow preview ── */
+    .preview-flow {
+      background: linear-gradient(135deg, #FF6B00, #FF00AA, #9B30FF, #00E5FF, #00FF88, #FFD700, #FF6B00);
+      background-size: 400% 400%;
+      animation: flowAnim 4s linear infinite;
+    }
+    @keyframes flowAnim {
+      0%   { background-position: 0% 50%; filter: hue-rotate(0deg); }
+      100% { background-position: 100% 50%; filter: hue-rotate(360deg); }
+    }
+
+    /* ── Pulse preview ── */
+    .preview-pulse {
+      background: #121212;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .pulse-circle {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #FF6B00 0%, rgba(255,107,0,0) 70%);
+      box-shadow: 0 0 30px rgba(255,107,0,0.7);
+      animation: pulseAnim 1.8s ease-in-out infinite;
+    }
+    .pulse-ring {
+      position: absolute;
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,107,0,0.5);
+      animation: pulseRing 1.8s ease-in-out infinite;
+    }
+    @keyframes pulseAnim {
+      0%,100% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 20px rgba(255,107,0,0.5); }
+      50%      { transform: scale(1.6); opacity: 1; box-shadow: 0 0 60px rgba(255,107,0,0.9); }
+    }
+    @keyframes pulseRing {
+      0%   { transform: scale(1); opacity: 1; }
+      80%  { transform: scale(2.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 0; }
+    }
+
+    /* ── Solid preview ── */
+    .preview-solid {
+      background: #FF6B00;
+      box-shadow: inset 0 0 80px rgba(0,0,0,0.2);
+      position: relative;
+    }
+    .preview-solid::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 40%, rgba(255,200,100,0.4), transparent 65%);
+    }
+
+    /* ── Wave preview ── */
+    .preview-wave {
+      background: #121212;
+      overflow: hidden;
+    }
+    .wave-sweep {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,107,0,0.85) 45%, rgba(255,180,80,0.95) 55%, transparent 100%);
+      animation: waveSweep 2s ease-in-out infinite;
+    }
+    @keyframes waveSweep {
+      from { transform: translateX(-100%); }
+      to   { transform: translateX(100%); }
+    }
+
+    /* ── Rainbow preview ── */
+    .preview-rainbow {
+      background: conic-gradient(from 0deg, #FF0000, #FF6B00, #FFD700, #00FF88, #00E5FF, #9B30FF, #FF00AA, #FF0000);
+      animation: rainbowSpin 5s linear infinite;
+    }
+    .rainbow-pulse {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      animation: rainbowBreath 2s ease-in-out infinite;
+    }
+    @keyframes rainbowSpin {
+      from { filter: hue-rotate(0deg) brightness(0.9); }
+      to   { filter: hue-rotate(360deg) brightness(1.1); }
+    }
+    @keyframes rainbowBreath {
+      0%,100% { opacity: 0.4; }
+      50%      { opacity: 0; }
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       FEATURES
+    ═══════════════════════════════════════════════════════════ */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 18px;
+    }
+    .feature-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 28px 26px;
+      transition: background 0.2s, border-color 0.2s, transform 0.2s;
+    }
+    .feature-card:hover {
+      background: rgba(255,255,255,0.075);
+      border-color: rgba(255,255,255,0.15);
+      transform: translateY(-3px);
+    }
+    .feature-icon {
+      font-size: 28px;
+      margin-bottom: 14px;
+      display: block;
+    }
+    .feature-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .feature-desc {
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.55;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       PHONE MOCKUP
+    ═══════════════════════════════════════════════════════════ */
+    #mockup {
+      background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(10,5,20,0.8) 100%);
+      padding: 96px 24px;
+    }
+    .mockup-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 64px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .mockup-text { flex: 1; min-width: 280px; max-width: 480px; }
+    .mockup-phone-wrap {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    /* Phone glow */
+    .phone-glow {
+      position: absolute;
+      width: 260px; height: 380px;
+      border-radius: 50px;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      filter: blur(60px);
+      opacity: 0.45;
+      animation: phoneGlow 3s ease-in-out infinite alternate;
+      z-index: 0;
+    }
+    @keyframes phoneGlow {
+      from { background: rgba(255,107,0,0.7); transform: translate(-50%,-50%) scale(1); }
+      to   { background: rgba(155,48,255,0.7); transform: translate(-50%,-50%) scale(1.15); }
+    }
+
+    /* Phone shell */
+    .phone {
+      position: relative;
+      z-index: 1;
+      width: 220px;
+      height: 440px;
+      background: linear-gradient(145deg, #2a2a35, #18181f);
+      border-radius: 40px;
+      border: 2px solid rgba(255,255,255,0.12);
+      box-shadow:
+        0 0 0 1px rgba(0,0,0,0.8),
+        0 40px 80px rgba(0,0,0,0.7),
+        inset 0 1px 0 rgba(255,255,255,0.1);
+      overflow: hidden;
+    }
+    .phone-screen {
+      position: absolute;
+      inset: 12px;
+      border-radius: 30px;
+      overflow: hidden;
+      background: #0c0c10;
+    }
+    .phone-screen-content {
+      width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      animation: screenCycle 12s ease-in-out infinite;
+    }
+    @keyframes screenCycle {
+      0%,16%   { background: #FF6B00; }
+      17%,33%  { background: linear-gradient(135deg,#FF00AA,#9B30FF); filter: hue-rotate(0deg); animation-name: screenCycle,flowAnim; }
+      34%,50%  { background: conic-gradient(from 0deg, #FF0000,#FFD700,#00FF88,#00E5FF,#9B30FF,#FF0000); }
+      51%,67%  { background: #fff; }
+      68%,84%  { background: #FF6B00; }
+      85%,100% { background: #0c0c10; }
+    }
+    .phone-mode-label {
+      position: absolute;
+      bottom: 24px;
+      left: 0; right: 0;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.85);
+      text-shadow: 0 0 12px rgba(0,0,0,0.8);
+      padding: 0 12px;
+    }
+    /* Dynamic island */
+    .dynamic-island {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px; height: 14px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 2;
+    }
+
+    /* Mockup text list */
+    .mockup-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      margin-top: 40px;
+    }
+    .mockup-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .list-bullet {
+      width: 32px; height: 32px;
+      border-radius: 10px;
+      background: rgba(255,107,0,0.12);
+      border: 1px solid rgba(255,107,0,0.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .list-text strong { font-size: 14px; font-weight: 700; display: block; margin-bottom: 2px; }
+    .list-text span { font-size: 13px; color: var(--text-dim); }
+
+    /* ═══════════════════════════════════════════════════════════
+       AUDIO REACTIVE SECTION
+    ═══════════════════════════════════════════════════════════ */
+    #audio {
+      background: radial-gradient(ellipse at 50% 100%, rgba(0,229,255,0.06) 0%, transparent 60%);
+      text-align: center;
+    }
+    .waveform {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 5px;
+      height: 80px;
+      margin: 0 auto 56px;
+    }
+    .waveform-bar {
+      width: 5px;
+      border-radius: 3px;
+      background: linear-gradient(to top, var(--accent), #FFD700);
+      animation: barAnim var(--dur) ease-in-out infinite alternate;
+    }
+    @keyframes barAnim {
+      from { height: 8px; opacity: 0.4; }
+      to   { height: var(--h); opacity: 1; }
+    }
+    .audio-stats {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 56px;
+    }
+    .stat {
+      text-align: center;
+    }
+    .stat-num {
+      font-size: 40px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      background: linear-gradient(135deg, #FF6B00, #FFD700);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 6px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       SAFETY NOTICE
+    ═══════════════════════════════════════════════════════════ */
+    #safety { padding: 0 24px 80px; }
+    .safety-card {
+      max-width: 800px;
+      margin: 0 auto;
+      background: rgba(255,200,0,0.05);
+      border: 1px solid rgba(255,200,0,0.18);
+      border-radius: var(--radius-lg);
+      padding: 28px 32px;
+      display: flex;
+      align-items: flex-start;
+      gap: 18px;
+    }
+    .safety-icon {
+      font-size: 28px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .safety-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #FFD700;
+    }
+    .safety-text { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+
+    /* ═══════════════════════════════════════════════════════════
+       TECH STACK
+    ═══════════════════════════════════════════════════════════ */
+    #tech { text-align: center; background: rgba(0,0,0,0.25); }
+    .tech-chips {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 40px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dim);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .chip:hover { border-color: rgba(255,255,255,0.22); color: var(--text); }
+    .chip-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════════════════════════════ */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 56px 24px 40px;
+      text-align: center;
+    }
+    .footer-logo {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+    }
+    .footer-logo .dot { color: var(--accent); }
+    .footer-tagline {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 32px;
+    }
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+    .footer-links a {
+      font-size: 13px;
+      color: var(--text-dim);
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--text); }
+    .footer-bottom {
+      font-size: 12px;
+      color: rgba(240,240,245,0.3);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════════════════════ */
+    @media (max-width: 600px) {
+      .modes-grid { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+      .mockup-wrapper { flex-direction: column; text-align: center; }
+      .mockup-list li { flex-direction: row; }
+      .audio-stats { gap: 24px; }
+      .safety-card { flex-direction: column; gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── HERO ──────────────────────────────────────────────────── -->
+  <section id="hero">
+    <div class="orbs">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+      <div class="orb orb-4"></div>
+    </div>
+    <div class="grid-lines"></div>
+
+    <div class="hero-content">
+      <div class="hero-eyebrow">React Native · Expo SDK 54 · v2.0</div>
+      <h1 class="hero-title">
+        Turn Your Phone Into<br>
+        a <span class="highlight">Concert Light</span>
+      </h1>
+      <p class="hero-sub">
+        Audio-reactive lighting modes that pulse with the beat. Gesture controls
+        built for dark crowds. Six stunning effects at your fingertips.
+      </p>
+      <div class="hero-cta">
+        <a href="#modes" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Explore Modes
+        </a>
+        <a href="https://github.com" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          View on GitHub
+        </a>
+      </div>
+      <div class="version-badge">
+        <span class="badge">iOS &amp; Android</span>
+        <span class="badge">Expo Go Compatible</span>
+        <span class="badge">React Native 0.81</span>
+        <span class="badge">Open Source</span>
+      </div>
+    </div>
+
+    <div class="scroll-hint">
+      <span>Scroll</span>
+      <div class="scroll-arrow"></div>
+    </div>
+  </section>
+
+  <!-- ── MODES ─────────────────────────────────────────────────── -->
+  <section id="modes">
+    <div class="container">
+      <div class="reveal">
+        <span class="section-label">6 Lighting Modes</span>
+        <h2 class="section-title">Every vibe,<br>perfectly captured</h2>
+        <p class="section-sub">From laser-sharp strobes to flowing rainbows — pick your moment and let your phone become part of the show.</p>
+      </div>
+      <div class="modes-grid">
+
+        <div class="mode-card reveal">
+          <div class="mode-preview preview-strobe"></div>
+          <div class="mode-info">
+            <div class="mode-name">⚡ Strobe</div>
+            <div class="mode-desc">Rapid-fire flash synchronized to the drop. Safety-capped at 6Hz with photosensitivity warning.</div>
+            <span class="mode-tag tag-visual">High Energy</span>
+          </div>
+        </div>
+
+        <div class="mode-card reveal">
+          <div class="mode-preview preview-flow"></div>
+          <div class="mode-info">
+            <div class="mode-name">🌊 Flow</div>
+            <div class="mode-desc">Silky smooth hue rotation through the full color spectrum. Steady, hypnotic, and crowd-pleasing.</div>
+            <span class="mode-tag tag-visual">4s Cycle</span>
+          </div>
+        </div>
+
+        <div class="mode-card reveal">
+          <div class="mode-preview preview-pulse" style="position:relative;">
+            <div class="pulse-ring"></div>
+            <div class="pulse-circle"></div>
+          </div>
+          <div class="mode-info">
+            <div class="mode-name">💓 Pulse</div>
+            <div class="mode-desc">Breathes gently at rest, then explodes on every bass hit. Mic-powered reactivity makes it feel alive.</div>
+            <span class="mode-tag tag-audio">Audio Reactive</span>
+          </div>
+        </div>
+
+        <div class="mode-card reveal">
+          <div class="mode-preview preview-solid"></div>
+          <div class="mode-info">
+            <div class="mode-name">● Solid</div>
+            <div class="mode-desc">Pure, unwavering color. The dependable choice for slow moments and intimate venues.</div>
+            <span class="mode-tag tag-visual">Default Mode</span>
+          </div>
+        </div>
+
+        <div class="mode-card reveal">
+          <div class="mode-preview preview-wave">
+            <div class="wave-sweep"></div>
+          </div>
+          <div class="mode-info">
+            <div class="mode-name">〰 Wave</div>
+            <div class="mode-desc">A sweeping beam of light glides left to right on a 2-second loop — pure kinetic energy.</div>
+            <span class="mode-tag tag-visual">2s Sweep</span>
+          </div>
+        </div>
+
+        <div class="mode-card reveal">
+          <div class="mode-preview preview-rainbow">
+            <div class="rainbow-pulse"></div>
+          </div>
+          <div class="mode-info">
+            <div class="mode-name">🌈 Rainbow</div>
+            <div class="mode-desc">Six concentric arcs pulsing through the full spectrum. The ultimate festival finale effect.</div>
+            <span class="mode-tag tag-visual">5s Cycle</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PHONE MOCKUP ───────────────────────────────────────────── -->
+  <section id="mockup">
+    <div class="container">
+      <div class="mockup-wrapper">
+
+        <div class="mockup-text reveal">
+          <span class="section-label">Designed for Concerts</span>
+          <h2 class="section-title">Built for dark<br>crowds &amp; big stages</h2>
+          <ul class="mockup-list">
+            <li>
+              <div class="list-bullet">👆</div>
+              <div class="list-text">
+                <strong>Gesture-first navigation</strong>
+                <span>Swipe left/right to cycle modes without looking down. Long-press to lock the screen.</span>
+              </div>
+            </li>
+            <li>
+              <div class="list-bullet">🌗</div>
+              <div class="list-text">
+                <strong>Dim UI mode</strong>
+                <span>Reduce the control panel to 7% opacity — keep the light blazing, protect your night vision.</span>
+              </div>
+            </li>
+            <li>
+              <div class="list-bullet">🎨</div>
+              <div class="list-text">
+                <strong>Full color control</strong>
+                <span>HSV color wheel with 7 quick-select presets. Match your artist's brand color in seconds.</span>
+              </div>
+            </li>
+            <li>
+              <div class="list-bullet">⚡</div>
+              <div class="list-text">
+                <strong>Native-thread animations</strong>
+                <span>Powered by Reanimated — silky 60fps even on mid-range devices, zero JS jank.</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="mockup-phone-wrap reveal">
+          <div class="phone-glow"></div>
+          <div class="phone">
+            <div class="phone-screen">
+              <div class="dynamic-island"></div>
+              <div class="phone-screen-content" id="phoneScreen"></div>
+              <div class="phone-mode-label" id="phoneModeLabel">Solid Mode</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── AUDIO REACTIVE ─────────────────────────────────────────── -->
+  <section id="audio">
+    <div class="container">
+      <div class="reveal">
+        <span class="section-label">Audio Reactivity</span>
+        <h2 class="section-title">Feels the music.<br>Becomes the music.</h2>
+        <p class="section-sub">A live microphone pipeline samples ambient sound 20 times per second, smooths the signal, and drives your lights in real-time.</p>
+      </div>
+
+      <div class="waveform reveal" id="waveform"></div>
+
+      <div class="reveal">
+        <div class="features-grid">
+          <div class="feature-card">
+            <span class="feature-icon">🎙️</span>
+            <div class="feature-title">Live Microphone Input</div>
+            <div class="feature-desc">Captures ambient dBFS levels via expo-audio with graceful permission handling and a sensible fallback level.</div>
+          </div>
+          <div class="feature-card">
+            <span class="feature-icon">📊</span>
+            <div class="feature-title">Signal Smoothing</div>
+            <div class="feature-desc">Exponential moving average (α=0.3) removes jitter so transitions look intentional, not jerky.</div>
+          </div>
+          <div class="feature-card">
+            <span class="feature-icon">⚡</span>
+            <div class="feature-title">20Hz Polling Loop</div>
+            <div class="feature-desc">Balances reactivity with battery life. Audio updates don't trigger React re-renders — stored in a ref for zero overhead.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="audio-stats reveal">
+        <div class="stat">
+          <div class="stat-num">20Hz</div>
+          <div class="stat-label">Sample Rate</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">6</div>
+          <div class="stat-label">Light Modes</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">60fps</div>
+          <div class="stat-label">Animation Rate</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">0</div>
+          <div class="stat-label">JS Jank</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FEATURES GRID ──────────────────────────────────────────── -->
+  <section id="features" style="background: rgba(0,0,0,0.2);">
+    <div class="container">
+      <div class="reveal">
+        <span class="section-label">Everything You Need</span>
+        <h2 class="section-title">Every detail.<br>Every moment.</h2>
+        <p class="section-sub">Concert Light Sync was designed from the ground up for live events — no half-measures.</p>
+      </div>
+      <div class="features-grid reveal">
+        <div class="feature-card">
+          <span class="feature-icon">🔒</span>
+          <div class="feature-title">Screen Lock</div>
+          <div class="feature-desc">Long-press to enter lock mode — a minimal overlay prevents accidental taps while you hold the phone above the crowd.</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">🌗</span>
+          <div class="feature-title">Dim UI</div>
+          <div class="feature-desc">Fade the control panel to near-invisible with a single tap. Your light stays on, your eyes stay adjusted.</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">📳</span>
+          <div class="feature-title">Haptic Feedback</div>
+          <div class="feature-desc">Tactile confirmation on every mode change, color selection, and brightness notch — feel the interaction without looking.</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">🎨</span>
+          <div class="feature-title">Color Wheel</div>
+          <div class="feature-desc">Full HSV picker with a hue slider, brightness control, and 7 quick-select presets from amber to cyan.</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">⚠️</span>
+          <div class="feature-title">Photosensitivity Guard</div>
+          <div class="feature-desc">Strobe mode shows a mandatory warning modal before activation. Safety is a feature, not an afterthought.</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">📱</span>
+          <div class="feature-title">iOS &amp; Android</div>
+          <div class="feature-desc">Built with Expo SDK 54 and the new React Native architecture. One codebase, two platforms, full parity.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SAFETY NOTICE ──────────────────────────────────────────── -->
+  <div id="safety">
+    <div class="container">
+      <div class="safety-card reveal">
+        <div class="safety-icon">⚠️</div>
+        <div>
+          <div class="safety-title">Photosensitivity Notice</div>
+          <div class="safety-text">Strobe mode uses rapid flashing that may affect people with photosensitive epilepsy or other conditions sensitive to flashing lights. Concert Light Sync displays a mandatory safety warning before Strobe mode can be activated. Strobe frequency is safety-capped at 6Hz (~80ms per half-cycle).</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TECH STACK ─────────────────────────────────────────────── -->
+  <section id="tech">
+    <div class="container">
+      <div class="reveal">
+        <span class="section-label">Built With</span>
+        <h2 class="section-title">Production-grade<br>technology</h2>
+      </div>
+      <div class="tech-chips reveal">
+        <div class="chip"><div class="chip-dot" style="background:#61DAFB;"></div>React Native 0.81</div>
+        <div class="chip"><div class="chip-dot" style="background:#4C97FB;"></div>Expo SDK 54</div>
+        <div class="chip"><div class="chip-dot" style="background:#FF6B00;"></div>Reanimated 4</div>
+        <div class="chip"><div class="chip-dot" style="background:#00E5FF;"></div>Expo Audio</div>
+        <div class="chip"><div class="chip-dot" style="background:#00FF88;"></div>Gesture Handler 2</div>
+        <div class="chip"><div class="chip-dot" style="background:#FFD700;"></div>Expo Linear Gradient</div>
+        <div class="chip"><div class="chip-dot" style="background:#FF88CC;"></div>Expo Haptics</div>
+        <div class="chip"><div class="chip-dot" style="background:#BF80FF;"></div>React 19</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ─────────────────────────────────────────────────── -->
+  <footer>
+    <div class="footer-logo">Concert<span class="dot">.</span>Light<span class="dot">.</span>Sync</div>
+    <div class="footer-tagline">Built for concert-goers, by concert-goers.</div>
+    <div class="footer-links">
+      <a href="https://github.com">GitHub</a>
+      <a href="#modes">Modes</a>
+      <a href="#features">Features</a>
+      <a href="#tech">Tech Stack</a>
+      <a href="README.md">Documentation</a>
+    </div>
+    <div class="footer-bottom">
+      v2.0.0 &nbsp;·&nbsp; MIT License &nbsp;·&nbsp; Made with React Native &amp; Expo
+    </div>
+  </footer>
+
+  <!-- ── JAVASCRIPT ─────────────────────────────────────────────── -->
+  <script>
+    // Scroll-reveal
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Generate waveform bars
+    const wf = document.getElementById('waveform');
+    const heights = [14,22,36,52,68,80,72,58,44,62,76,56,40,60,72,80,66,48,34,26,38,54,70,78,64,46,30,42,58,74,62,44,32,50,66,78,56,38,24,16];
+    const durations = [0.6,0.8,0.5,0.9,0.7,0.6,0.8,0.5,0.7,0.6,0.8,0.5,0.9,0.7,0.6,0.5,0.8,0.7,0.6,0.9,0.5,0.7,0.6,0.8,0.5,0.9,0.7,0.6,0.8,0.5,0.7,0.6,0.9,0.8,0.5,0.7,0.6,0.8,0.5,0.9];
+    heights.forEach((h, i) => {
+      const bar = document.createElement('div');
+      bar.className = 'waveform-bar';
+      bar.style.cssText = `--h:${h}px; --dur:${durations[i]}s; animation-delay:${(i * 0.04).toFixed(2)}s;`;
+      wf.appendChild(bar);
+    });
+
+    // Phone mockup cycling
+    const modes = [
+      { label: 'Solid Mode',   bg: '#FF6B00' },
+      { label: 'Flow Mode',    bg: 'linear-gradient(135deg,#FF6B00,#FF00AA,#9B30FF,#00E5FF,#FFD700,#FF6B00)' },
+      { label: 'Pulse Mode',   bg: '#FF3366' },
+      { label: 'Rainbow Mode', bg: 'conic-gradient(from 0deg,#FF0000,#FFD700,#00FF88,#00E5FF,#9B30FF,#FF0000)' },
+      { label: 'Wave Mode',    bg: '#1a0a00' },
+      { label: 'Strobe Mode',  bg: '#f5f5ff' },
+    ];
+    let modeIdx = 0;
+    const phoneScreen = document.getElementById('phoneScreen');
+    const phoneModeLabel = document.getElementById('phoneModeLabel');
+    function cycleMode() {
+      const m = modes[modeIdx % modes.length];
+      phoneScreen.style.background = m.bg;
+      phoneScreen.style.transition = 'background 1s ease';
+      phoneModeLabel.textContent = m.label;
+      modeIdx++;
+    }
+    cycleMode();
+    setInterval(cycleMode, 2200);
+  </script>
+</body>
+</html>
