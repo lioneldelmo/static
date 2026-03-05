@@ -360,15 +360,23 @@
       50%,100% { background: #121212; }
     }
 
-    /* ── Flow preview ── */
-    .preview-flow {
-      background: linear-gradient(135deg, #FF6B00, #FF00AA, #9B30FF, #00E5FF, #00FF88, #FFD700, #FF6B00);
-      background-size: 400% 400%;
-      animation: flowAnim 4s linear infinite;
+    /* ── Meter preview ── */
+    .preview-meter {
+      background: #121212;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 6px;
+      padding: 0 24px 16px;
     }
-    @keyframes flowAnim {
-      0%   { background-position: 0% 50%; filter: hue-rotate(0deg); }
-      100% { background-position: 100% 50%; filter: hue-rotate(360deg); }
+    .meter-bar {
+      width: 18px;
+      border-radius: 3px 3px 0 0;
+      animation: meterAnim var(--dur) ease-in-out infinite alternate;
+    }
+    @keyframes meterAnim {
+      0%   { height: 8px; }
+      100% { height: var(--h); }
     }
 
     /* ── Pulse preview ── */
@@ -378,57 +386,76 @@
       align-items: center;
       justify-content: center;
     }
-    .pulse-circle {
-      width: 60px; height: 60px;
-      border-radius: 50%;
-      background: radial-gradient(circle, #FF6B00 0%, rgba(255,107,0,0) 70%);
-      box-shadow: 0 0 30px rgba(255,107,0,0.7);
-      animation: pulseAnim 1.8s ease-in-out infinite;
-    }
     .pulse-ring {
       position: absolute;
       width: 60px; height: 60px;
       border-radius: 50%;
-      border: 2px solid rgba(255,107,0,0.5);
+      border: 2px solid rgba(255,107,0,0.7);
       animation: pulseRing 1.8s ease-in-out infinite;
     }
-    @keyframes pulseAnim {
-      0%,100% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 20px rgba(255,107,0,0.5); }
-      50%      { transform: scale(1.6); opacity: 1; box-shadow: 0 0 60px rgba(255,107,0,0.9); }
-    }
+    .pulse-ring:nth-child(2) { animation-delay: -0.6s; }
+    .pulse-ring:nth-child(3) { animation-delay: -1.2s; }
     @keyframes pulseRing {
-      0%   { transform: scale(1); opacity: 1; }
-      80%  { transform: scale(2.8); opacity: 0; }
-      100% { transform: scale(1); opacity: 0; }
+      0%   { transform: scale(0.2); opacity: 0.75; }
+      80%  { transform: scale(1.5); opacity: 0; }
+      100% { transform: scale(0.2); opacity: 0; }
     }
 
-    /* ── Solid preview ── */
-    .preview-solid {
-      background: #FF6B00;
-      box-shadow: inset 0 0 80px rgba(0,0,0,0.2);
+    /* ── Candle preview ── */
+    .preview-candle {
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       position: relative;
+      overflow: hidden;
     }
-    .preview-solid::after {
-      content: '';
+    .candle-flame {
+      width: 40px;
+      height: 70px;
+      background: radial-gradient(ellipse at 50% 80%, #FF6B00 0%, #FFD700 40%, rgba(255,200,0,0) 75%);
+      border-radius: 50% 50% 30% 30% / 60% 60% 40% 40%;
+      animation: candleFlicker 1.2s ease-in-out infinite alternate;
+      box-shadow: 0 0 24px 8px rgba(255,107,0,0.5), 0 0 60px 16px rgba(255,160,0,0.2);
+      position: relative;
+      z-index: 1;
+    }
+    .candle-glow {
       position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at 50% 40%, rgba(255,200,100,0.4), transparent 65%);
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,107,0,0.25), transparent 70%);
+      animation: candleGlow 1.2s ease-in-out infinite alternate;
+    }
+    @keyframes candleFlicker {
+      0%   { transform: scaleX(1) scaleY(1) rotate(-1deg); opacity: 0.9; }
+      33%  { transform: scaleX(0.92) scaleY(1.06) rotate(1deg); opacity: 1; }
+      66%  { transform: scaleX(1.05) scaleY(0.97) rotate(-0.5deg); opacity: 0.95; }
+      100% { transform: scaleX(0.96) scaleY(1.04) rotate(1.5deg); opacity: 1; }
+    }
+    @keyframes candleGlow {
+      0%   { transform: scale(1); opacity: 0.6; }
+      100% { transform: scale(1.2); opacity: 1; }
     }
 
     /* ── Wave preview ── */
     .preview-wave {
       background: #121212;
-      overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 3px;
+      padding: 0 16px 16px;
     }
-    .wave-sweep {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg, transparent 0%, rgba(255,107,0,0.85) 45%, rgba(255,180,80,0.95) 55%, transparent 100%);
-      animation: waveSweep 2s ease-in-out infinite;
+    .wave-bar-preview {
+      width: 8px;
+      border-radius: 3px 3px 0 0;
+      animation: waveBarAnim var(--dur) ease-in-out infinite alternate;
     }
-    @keyframes waveSweep {
-      from { transform: translateX(-100%); }
-      to   { transform: translateX(100%); }
+    @keyframes waveBarAnim {
+      0%   { height: 6px; }
+      100% { height: var(--h); }
     }
 
     /* ── Rainbow preview ── */
@@ -793,7 +820,7 @@
     <div class="grid-lines"></div>
 
     <div class="hero-content">
-      <div class="hero-eyebrow">React Native · Expo SDK 54 · v2.0</div>
+      <div class="hero-eyebrow">React Native · Expo SDK 54 · v1.0</div>
       <h1 class="hero-title">
         Turn Your Phone Into<br>
         a <span class="highlight">Concert Light</span>
@@ -846,43 +873,45 @@
         </div>
 
         <div class="mode-card reveal">
-          <div class="mode-preview preview-flow"></div>
+          <div class="mode-preview preview-meter" id="meterPreview"></div>
           <div class="mode-info">
-            <div class="mode-name">🌊 Flow</div>
-            <div class="mode-desc">Silky smooth hue rotation through the full color spectrum. Steady, hypnotic, and crowd-pleasing.</div>
-            <span class="mode-tag tag-visual">4s Cycle</span>
+            <div class="mode-name">📊 Meter</div>
+            <div class="mode-desc">Ten vertical VU bars that bounce with the beat. Color-coded green, yellow, and red by level — a classic audio visualizer.</div>
+            <span class="mode-tag tag-audio">Audio Reactive</span>
           </div>
         </div>
 
         <div class="mode-card reveal">
           <div class="mode-preview preview-pulse" style="position:relative;">
             <div class="pulse-ring"></div>
-            <div class="pulse-circle"></div>
+            <div class="pulse-ring"></div>
+            <div class="pulse-ring"></div>
           </div>
           <div class="mode-info">
             <div class="mode-name">💓 Pulse</div>
-            <div class="mode-desc">Breathes gently at rest, then explodes on every bass hit. Mic-powered reactivity makes it feel alive.</div>
+            <div class="mode-desc">Three concentric ripple rings expand outward in sequence. Louder audio accelerates the rings; silence lets them drift slowly.</div>
             <span class="mode-tag tag-audio">Audio Reactive</span>
           </div>
         </div>
 
         <div class="mode-card reveal">
-          <div class="mode-preview preview-solid"></div>
+          <div class="mode-preview preview-candle">
+            <div class="candle-glow"></div>
+            <div class="candle-flame"></div>
+          </div>
           <div class="mode-info">
-            <div class="mode-name">● Solid</div>
-            <div class="mode-desc">Pure, unwavering color. The dependable choice for slow moments and intimate venues.</div>
-            <span class="mode-tag tag-visual">Default Mode</span>
+            <div class="mode-name">🕯 Candle</div>
+            <div class="mode-desc">An animated flame that flickers naturally at rest and brightens in intensity relative to the audio level around you.</div>
+            <span class="mode-tag tag-audio">Audio Reactive</span>
           </div>
         </div>
 
         <div class="mode-card reveal">
-          <div class="mode-preview preview-wave">
-            <div class="wave-sweep"></div>
-          </div>
+          <div class="mode-preview preview-wave" id="wavePreview"></div>
           <div class="mode-info">
             <div class="mode-name">〰 Wave</div>
-            <div class="mode-desc">A sweeping beam of light glides left to right on a 2-second loop — pure kinetic energy.</div>
-            <span class="mode-tag tag-visual">2s Sweep</span>
+            <div class="mode-desc">Twenty rainbow bars form an audio-reactive sine wave, scrolling on a 2-second phase loop. Amplitude rises with the music.</div>
+            <span class="mode-tag tag-audio">Audio Reactive</span>
           </div>
         </div>
 
@@ -918,10 +947,10 @@
               </div>
             </li>
             <li>
-              <div class="list-bullet">🌗</div>
+              <div class="list-bullet">⚙️</div>
               <div class="list-text">
-                <strong>Dim UI mode</strong>
-                <span>Reduce the control panel to 7% opacity — keep the light blazing, protect your night vision.</span>
+                <strong>Hide &amp; gear restore</strong>
+                <span>Tap Hide to dismiss the panel entirely. A gear icon in the top corner brings it back — zero clutter while the light blazes.</span>
               </div>
             </li>
             <li>
@@ -1023,9 +1052,9 @@
           <div class="feature-desc">Long-press to enter lock mode — a minimal overlay prevents accidental taps while you hold the phone above the crowd.</div>
         </div>
         <div class="feature-card">
-          <span class="feature-icon">🌗</span>
-          <div class="feature-title">Dim UI</div>
-          <div class="feature-desc">Fade the control panel to near-invisible with a single tap. Your light stays on, your eyes stay adjusted.</div>
+          <span class="feature-icon">⚙️</span>
+          <div class="feature-title">Hide &amp; Restore</div>
+          <div class="feature-desc">Tap Hide to dismiss the control panel entirely. A subtle gear icon appears in the top-right corner — tap it to bring controls back.</div>
         </div>
         <div class="feature-card">
           <span class="feature-icon">📳</span>
@@ -1096,7 +1125,7 @@
       <a href="README.md">Documentation</a>
     </div>
     <div class="footer-bottom">
-      v2.0.0 &nbsp;·&nbsp; MIT License &nbsp;·&nbsp; Made with React Native &amp; Expo
+      v1.0.0 &nbsp;·&nbsp; MIT License &nbsp;·&nbsp; Made with React Native &amp; Expo
     </div>
   </footer>
 
@@ -1119,10 +1148,36 @@
       wf.appendChild(bar);
     });
 
+    // Generate meter preview bars
+    const meterPreview = document.getElementById('meterPreview');
+    const meterHeights = [60, 90, 120, 100, 140, 130, 110, 80, 55, 40];
+    const meterColors = ['#00FF88','#00FF88','#00FF88','#00FF88','#FFD700','#FFD700','#FFD700','#FF5533','#FF5533','#FF3333'];
+    const meterDurs = [0.6, 0.5, 0.7, 0.55, 0.8, 0.65, 0.5, 0.7, 0.6, 0.8];
+    meterHeights.forEach((h, i) => {
+      const bar = document.createElement('div');
+      bar.className = 'meter-bar';
+      bar.style.cssText = `--h:${h}px; --dur:${meterDurs[i]}s; background:${meterColors[i]}; animation-delay:${(i * 0.06).toFixed(2)}s;`;
+      meterPreview.appendChild(bar);
+    });
+
+    // Generate wave preview bars (20 rainbow bars in sine-wave pattern)
+    const wavePreview = document.getElementById('wavePreview');
+    const rainbowColors = ['#FF0000','#FF3300','#FF6600','#FF9900','#FFCC00','#FFFF00','#AAFF00','#55FF00','#00FF55','#00FFAA','#00FFFF','#00AAFF','#0055FF','#0000FF','#2200DD','#4400BB','#6600AA','#8800AA','#AA0088','#CC0066'];
+    const waveBarCount = 20;
+    for (let i = 0; i < waveBarCount; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'wave-bar-preview';
+      const sineH = Math.abs(Math.sin((i / waveBarCount) * Math.PI * 2));
+      const h = Math.max(10, Math.round(sineH * 130));
+      const dur = (0.5 + (i % 5) * 0.12).toFixed(2);
+      bar.style.cssText = `--h:${h}px; --dur:${dur}s; background:${rainbowColors[i]}; animation-delay:${(i * 0.08).toFixed(2)}s;`;
+      wavePreview.appendChild(bar);
+    }
+
     // Phone mockup cycling
     const modes = [
-      { label: 'Solid Mode',   bg: '#FF6B00' },
-      { label: 'Flow Mode',    bg: 'linear-gradient(135deg,#FF6B00,#FF00AA,#9B30FF,#00E5FF,#FFD700,#FF6B00)' },
+      { label: 'Candle Mode',  bg: '#000' },
+      { label: 'Meter Mode',   bg: 'linear-gradient(to top, #00FF88 0%, #FFD700 50%, #FF3333 100%)' },
       { label: 'Pulse Mode',   bg: '#FF3366' },
       { label: 'Rainbow Mode', bg: 'conic-gradient(from 0deg,#FF0000,#FFD700,#00FF88,#00E5FF,#9B30FF,#FF0000)' },
       { label: 'Wave Mode',    bg: '#1a0a00' },

@@ -1,6 +1,6 @@
 # Concert Light Sync
 
-![Version](https://img.shields.io/badge/version-2.0.0-FF6B00?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.0.0-FF6B00?style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20Android-blue?style=flat-square)
 ![Expo](https://img.shields.io/badge/Expo-SDK%2054-4C97FB?style=flat-square)
 ![React Native](https://img.shields.io/badge/React%20Native-0.81-61DAFB?style=flat-square)
@@ -29,11 +29,11 @@ Concert Light Sync was built for one purpose: making live music more immersive. 
 | Mode | Description | Audio Reactive |
 |------|-------------|:--------------:|
 | ⚡ Strobe | Rapid on/off flash, safety-capped at 6Hz | — |
-| 🌊 Flow | Smooth hue rotation through the full spectrum | — |
-| 💓 Pulse | Breathing baseline that explodes on bass hits | ✓ |
-| ● Solid | Steady, consistent color — no animation | — |
-| 〰 Wave | Sweeping beam from left to right on a 2s loop | — |
-| 🌈 Rainbow | Six concentric arcs cycling through all colors | — |
+| 📊 Meter | 10-bar VU meter, color-coded green/yellow/red | ✓ |
+| 💓 Pulse | Three concentric ripple rings that expand faster with louder audio | ✓ |
+| 🕯 Candle | Animated flame that flickers and brightens relative to the audio level | ✓ |
+| 〰 Wave | Rainbow sine wave with audio-modulated amplitude | ✓ |
+| 🌈 Rainbow | Seven concentric arcs pulsing through the spectrum | ✓ |
 
 ### Controls
 - **Swipe left/right** — cycle through modes instantly
@@ -85,7 +85,7 @@ concert-light-sync/
 ├── babel.config.js          # Babel preset for Expo + Reanimated plugin
 ├── metro.config.js          # Metro bundler config
 ├── index.html               # Static marketing landing page
-├── CLAUDE_PROMPT.md         # Original design specification
+├── CLAUDE.md                # Original design specification
 └── components/
     ├── LightCanvas.js       # Reanimated rendering engine (all 6 modes)
     ├── ControlPanel.js      # Bento grid UI, mode selection, color/brightness
@@ -97,7 +97,7 @@ concert-light-sync/
 
 **`App.js`** — Orchestrates the app. Holds top-level state (mode, color, brightness, lock, dim). Creates the composed pan + long-press gesture for swiping and locking. Manages splash screen timing and Reanimated runtime initialization.
 
-**`LightCanvas.js`** — The visual engine. Each mode has dedicated Reanimated `withRepeat`/`withTiming`/`withSequence` animation sequences running on the native thread. Polls `audioLevelRef` at 20Hz for Pulse mode reactivity.
+**`LightCanvas.js`** — The visual engine. Each mode has dedicated Reanimated `withRepeat`/`withTiming`/`withSequence` animation sequences running on the native thread. Polls `audioLevelRef` at 20Hz for audio-reactive modes (Pulse, Meter, Wave, Rainbow, Candle). Pulse renders three staggered concentric rings driven by `useFrameCallback`; Candle renders an animated flame GIF whose opacity and scale track the audio level.
 
 **`ControlPanel.js`** — The 3×2 bento grid of mode tiles, brightness slider, color swatch, and top-bar toggles (Dim, Lock). Uses React Native `Animated` for the Dim UI fade since it doesn't need native-thread precision.
 
@@ -169,7 +169,7 @@ Key settings in `app.json`:
   "expo": {
     "name": "Concert Light Sync",
     "slug": "concert-light-sync",
-    "version": "2.0.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "newArchEnabled": true,
     "ios": {
